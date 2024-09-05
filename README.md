@@ -22,7 +22,7 @@ cargo +nightly build --release --target wasm32-wasip2
 You can use the `wash install` subcommand to install your newly built plugin:
 
 ```bash
-wash plugin install oci://ghcr.io/brooksmtownsend/standup_plugin:0.2.0
+wash plugin install oci://ghcr.io/brooksmtownsend/standup_plugin:0.3.0
 ```
 
 You can confirm your plugin is installed with `wash plugin list`:
@@ -32,7 +32,7 @@ You can confirm your plugin is installed with `wash plugin list`:
 
 
   Name                          ID                            Version                       Author
-  Standup Plugin                standup                       0.2.0                         Brooks
+  Standup Plugin                standup                       0.3.0                         Brooks
     └ Let wash roll your standup initiative
 ```
 

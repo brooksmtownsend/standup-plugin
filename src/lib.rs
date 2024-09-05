@@ -37,6 +37,26 @@ impl RunGuest for StandupPlugin {
             std::process::exit(1);
         });
 
+        // Check first to make sure the user hasn't already rolled
+        let mut response = futures::executor::block_on(
+            reqwest::Client::new()
+                .get("https://standup.cosmonic.sh/api/initiative")
+                .header("Content-Type", "application/json")
+                .send(),
+        )
+        .expect("should get response bytes");
+        let current_initiatives: Vec<StandupData> =
+            serde_json::from_reader(&mut response.bytes_stream().expect("should get bytes stream"))
+                .expect("should deserialize response");
+        if current_initiatives.iter().any(|i| i.name == user) {
+            println!(
+                "You already rolled today, good job {}.\nGet on over to https://standup.cosmonic.sh/",
+                user
+            );
+            return Ok(());
+        }
+
+        // Roll initiative
         let mut response = futures::executor::block_on(
             reqwest::Client::new()
                 .post("https://standup.cosmonic.sh/api/initiative")
@@ -45,15 +65,14 @@ impl RunGuest for StandupPlugin {
                 .send(),
         )
         .expect("should get response bytes");
-
-        let mut resp = response.bytes_stream().expect("should get bytes stream");
         let standup_response: StandupData =
-            serde_json::from_reader(&mut resp).expect("should deserialize response");
-
+            serde_json::from_reader(&mut response.bytes_stream().expect("should get bytes stream"))
+                .expect("should deserialize response");
         println!(
             "You rolled a {}, good job {}.\nGet on over to https://standup.cosmonic.sh/",
             standup_response.roll, standup_response.name
         );
+
         Ok(())
     }
 }
