@@ -18,7 +18,6 @@ use bindings::exports::wasmcloud::wash::subcommand::{
     Argument, Guest as SubcommandGuest, Metadata,
 };
 
-use wasi::cli::environment::get_arguments;
 use wasi::exports::cli::run::Guest as RunGuest;
 
 #[derive(Debug, serde::Deserialize)]
@@ -32,8 +31,8 @@ struct StandupPlugin;
 // Our implementation of the wasi:cli/run interface
 impl RunGuest for StandupPlugin {
     fn run() -> Result<(), ()> {
-        let args = get_arguments();
-        let user = args.get(1).clone().unwrap_or_else(|| {
+        let env_user = std::env::var("STANDUP_NAME").ok();
+        let user = std::env::args().nth(1).or(env_user).unwrap_or_else(|| {
             eprintln!("Make sure to provide a name to roll the standup initiative for as an arg");
             std::process::exit(1);
         });
@@ -72,8 +71,8 @@ impl SubcommandGuest for StandupPlugin {
             arguments: vec![(
                 "name".to_string(),
                 Argument {
-                    required: true,
-                    description: "The name of the person to roll the standup initiative for"
+                    required: false,
+                    description: "The name of the person to roll the standup initiative for. Required unless STANDUP_NAME environment variable is set."
                         .to_string(),
                     is_path: false,
                 },
