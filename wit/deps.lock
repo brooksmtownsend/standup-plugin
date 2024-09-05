@@ -1,8 +1,6 @@
 [cli]
-url = "https://github.com/WebAssembly/wasi-cli/archive/v0.2.0.tar.gz"
 sha256 = "285865a31d777181b075f39e92bcfe59c89cd6bacce660be1b9a627646956258"
 sha512 = "da2622210a9e3eea82b99f1a5b8a44ce5443d009cb943f7bca0bf9cf4360829b289913d7ee727c011f0f72994ea7dc8e661ebcc0a6b34b587297d80cd9b3f7e8"
-deps = ["clocks", "filesystem", "io", "random", "sockets"]
 
 [clocks]
 sha256 = "468b4d12892fe926b8eb5d398dbf579d566c93231fa44f415440572c695b7613"
@@ -32,4 +30,4 @@ sha512 = "5a63c1f36de0c4548e1d2297bdbededb28721cbad94ef7825c469eae29d7451c97e00b
 url = "https://github.com/wasmCloud/wasmCloud/releases/download/wash-plugin-v0.1.0/wash-plugins-0.1.0.tar.gz"
 sha256 = "08dc313c0f342a347653d02da3e0c6f66eab65c647adb03ac863902ee94d7ad3"
 sha512 = "de858512eea9af1294531b56f7b6877271de7a7908343134b962b66e6e4e1304e3e6d5224042323499a31bb9af0b3ebf2f572dd75a0e59fe7954889afcb57869"
-deps = ["clocks", "filesystem", "http", "io", "random", "sockets"]
+deps = ["cli", "clocks", "filesystem", "http", "io", "random", "sockets"]

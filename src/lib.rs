@@ -3,12 +3,8 @@ mod bindings {
 
     wit_bindgen::generate!({
         with: {
-            "wasi:cli/environment@0.2.0": ::wasi::cli::environment,
-            "wasi:io/error@0.2.0": ::wasi::io::error,
-            "wasi:io/poll@0.2.0": ::wasi::io::poll,
-            "wasi:io/streams@0.2.0": ::wasi::io::streams,
+            "wasmcloud:wash/subcommand@0.1.0": generate
         },
-        generate_all
     });
 
     export!(StandupPlugin);
@@ -18,9 +14,7 @@ use bindings::exports::wasmcloud::wash::subcommand::{
     Argument, Guest as SubcommandGuest, Metadata,
 };
 
-use wasi::exports::cli::run::Guest as RunGuest;
-
-#[derive(Debug, serde::Deserialize)]
+#[derive(serde::Deserialize)]
 struct StandupData {
     name: String,
     roll: u32,
@@ -28,8 +22,7 @@ struct StandupData {
 
 struct StandupPlugin;
 
-// Our implementation of the wasi:cli/run interface
-impl RunGuest for StandupPlugin {
+impl wasi::exports::cli::run::Guest for StandupPlugin {
     fn run() -> Result<(), ()> {
         let env_user = std::env::var("STANDUP_NAME").ok();
         let user = std::env::args().nth(1).or(env_user).unwrap_or_else(|| {
