@@ -12,9 +12,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
+      - name: Install wash
+        uses: wasmCloud/common-actions/install-wash@main
 
       - name: Set up Rust
         run: |
