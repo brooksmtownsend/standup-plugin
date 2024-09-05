@@ -1,0 +1,35 @@
+name: Rust Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Set up Rust
+        run: |
+          rustup toolchain install nightly
+          rustup +nightly target add wasm32-wasip2
+
+      - name: Build
+        run: |
+          cargo +nightly build --release --target wasm32-wasip2
+
+      - name: Push
+        env:
+          WASH_REG_USER: brooksmtownsend
+          WASH_REG_PASSWORD: ${{ github.token }}
+        run: |
+          version=$(cargo metadata --no-deps |jq -r '.packages[0].version')
+          wash push ghcr.io/brooksmtownsend/standup_plugin:canary target/wasm32-wasip2/release/standup_plugin.wasm
+          wash push ghcr.io/brooksmtownsend/standup_plugin:$version target/wasm32-wasip2/release/standup_plugin.wasm

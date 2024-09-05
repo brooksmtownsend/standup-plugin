@@ -1,0 +1,85 @@
+mod bindings {
+    use super::StandupPlugin;
+
+    wit_bindgen::generate!({
+        with: {
+            "wasi:cli/environment@0.2.0": ::wasi::cli::environment,
+            "wasi:io/error@0.2.0": ::wasi::io::error,
+            "wasi:io/poll@0.2.0": ::wasi::io::poll,
+            "wasi:io/streams@0.2.0": ::wasi::io::streams,
+        },
+        generate_all
+    });
+
+    export!(StandupPlugin);
+}
+
+use bindings::exports::wasmcloud::wash::subcommand::{
+    Argument, Guest as SubcommandGuest, Metadata,
+};
+
+use wasi::cli::environment::get_arguments;
+use wasi::exports::cli::run::Guest as RunGuest;
+
+#[derive(Debug, serde::Deserialize)]
+struct StandupData {
+    name: String,
+    roll: u32,
+}
+
+struct StandupPlugin;
+
+// Our implementation of the wasi:cli/run interface
+impl RunGuest for StandupPlugin {
+    fn run() -> Result<(), ()> {
+        let args = get_arguments();
+        let user = args.get(1).clone().unwrap_or_else(|| {
+            eprintln!("Make sure to provide a name to roll the standup initiative for as an arg");
+            std::process::exit(1);
+        });
+
+        let mut response = futures::executor::block_on(
+            reqwest::Client::new()
+                .post("https://standup.cosmonic.sh/api/initiative")
+                .header("Content-Type", "application/json")
+                .body(format!("{{\"name\": \"{user}\", \"created_at\": 0}}"))
+                .send(),
+        )
+        .expect("should get response bytes");
+
+        let mut resp = response.bytes_stream().expect("should get bytes stream");
+        let standup_response: StandupData =
+            serde_json::from_reader(&mut resp).expect("should deserialize response");
+
+        println!(
+            "You rolled a {}, good job {}.\nGet on over to https://standup.cosmonic.sh/",
+            standup_response.roll, standup_response.name
+        );
+        Ok(())
+    }
+}
+
+// Our plugin's metadata implemented for the subcommand interface
+impl SubcommandGuest for StandupPlugin {
+    fn register() -> Metadata {
+        Metadata {
+            name: "Standup Plugin".to_string(),
+            id: "standup".to_string(),
+            description: "Let wash roll your standup initiative".to_string(),
+            author: "Brooks".to_string(),
+            version: env!("CARGO_PKG_VERSION").to_string(),
+            flags: vec![],
+            arguments: vec![(
+                "name".to_string(),
+                Argument {
+                    required: true,
+                    description: "The name of the person to roll the standup initiative for"
+                        .to_string(),
+                    is_path: false,
+                },
+            )],
+        }
+    }
+}
+
+wasi::cli::command::export!(StandupPlugin);
